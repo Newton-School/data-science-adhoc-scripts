@@ -12,17 +12,16 @@ from slack_sdk.errors import SlackApiError
 
 class SlackAPIFunctions:
     def __init__(self):
-        self.courses = {"858vixlx9sj4": "Zelda", "jkw1sql95rbi": "Mario", "tw8gbvg2bw5a": "Sonic",
-                        "350nvj5yy5wq": "Tetris"}
-        self.mentor_channel_identifier = "-mentor-channel-"
-        self.permanent_members_id = []
+        self.courses = {"sklkedn8nxy9": "Array", "j294lterlm0f": "Boolean", "yfk0ux5tgdnz": "Char", "h5bcxjg5iyit": "Pointer" , "n16nhsj3qwl9": "Token"}
+        self.mentor_channel_identifier = "-mentor-sub-group-"
+        self.permanent_members_id = ["U03EHQSN9UM", "U03DYHU8685", "U03ET95U0V9", "U03AHU8JTFZ" , "U03A4ALDY74" , "U03A42G14P8" , "U03ELEXEU4W" , "U038H9F6UMV" , "U03DS3Y8UKX"]
 
         self.google_authentication_path = "mentor-sheet-2629f5c5388c.json"
         self.google_sheet_name = "Mentor Slack Evaluation: January, 2022"
         self.google_subsheet_name = "Sheet1"
 
         load_dotenv()
-        self.django_token = "pbSgjRcBxtGeki3ChZG8vKbWjdAsBi"
+        self.django_token = "BLoBgCTT197RvdNq0CxV8edM2fFSun"
         self.headers = {"Authorization": "Bearer {0}".format(os.getenv("USER_ACCESS_TOKEN"))}
         ACCESS_TOKEN = os.getenv("USER_ACCESS_TOKEN")
         self.client = WebClient(token=ACCESS_TOKEN)
@@ -30,17 +29,19 @@ class SlackAPIFunctions:
 
     def dump_all_channels_list_csv(self):
         channels = pd.DataFrame(dict())
+        # channels:read, groups:read, im:read, mpim:read
         url = "https://slack.com/api/conversations.list?types=private_channel&limit=1000"
         result = requests.get(url, headers=self.headers).json()
         for val in result['channels']:
             channels = channels.append(val, ignore_index=True)
         channels.to_csv('private_channels.csv', index=False)
-        return result['channels']
+        return channels
 
     def get_all_users_list(self):
         cursor = True
         count = 1
         users = pd.DataFrame(dict())
+        # users:read
         while cursor:
             if not count == 1:
                 url = "https://slack.com/api/users.list?pretty=1&cursor={0}%3D".format(next_cursor)
@@ -62,6 +63,7 @@ class SlackAPIFunctions:
         return users
 
     def get_chat_history(self, channel_id):
+        # channels:history, groups:history, im:history, mpim:history
         url = "https://slack.com/api/conversations.history?channel={0}".format(channel_id)
         return requests.get(url, headers=self.headers).json()['messages']
 
@@ -84,8 +86,8 @@ class SlackAPIFunctions:
                     mappings = mappings.append(
                         {"mentor": mentor, "mentee": mentee, "course": self.courses[course], "Name": name},
                         ignore_index=True)
-            mappings.to_csv('mentor_mentee_mappings.csv', index=False)
-            return mappings
+        mappings.to_csv('mentor_mentee_mappings.csv', index=False)
+        return mappings
 
     def replace_id(self, name, users):
         try:
@@ -154,6 +156,7 @@ class SlackAPIFunctions:
         wks.batch_update(df)
 
     def add_users_in_channel(self, channel_id, user_ids):
+        # channels:write, groups:write, im:write, mpim:write
         try:
             result = self.client.conversations_invite(
                 channel=channel_id, users=user_ids
@@ -164,6 +167,7 @@ class SlackAPIFunctions:
             self.logger.error("Error adding user: {}".format(e))
 
     def create_single_channel(self, channel_name, is_private=False):
+        # channels:write, groups:write, im:write, mpim:write
         url = "https://slack.com/api/conversations.create?name={0}&is_private=True".format(channel_name)
         req = requests.get(url, headers=self.headers).json()
         return req
@@ -194,10 +198,20 @@ class SlackAPIFunctions:
                 print("mentor_channel_not_created", channel_name)
 
     def post_a_message(self, channel_id, text):
+        # chat:write, chat:write:user, chat:write:bot
         url = "https://slack.com/api/chat.postMessage?channel={0}&text={1}".format(channel_id, text)
         return requests.get(url, headers=self.headers).json()
 
+    def archive_mentor_channels(self):
+        # channels:write, groups:write, im:write, mpim:write
+        channels = self.dump_all_channels_list_csv()
+        for i, row in channels['name'].iteritems():
+            if self.mentor_channel_identifier in row:
+                url = "https://slack.com/api/conversations.archive?channel={0}".format(channels.loc[i]['id'])
+                requests.post(url, headers=self.headers)
+
     def pin_a_message(self, channel_id, ts):
+        # pins:write
         url = "https://slack.com/api/pins.add?channel={0}&timestamp={1}".format(channel_id, ts)
         return requests.get(url, headers=self.headers).json()
 
@@ -216,3 +230,8 @@ class SlackAPIFunctions:
             if self.mentor_channel_identifier in row:
                 ts = self.post_a_message(channels.loc[i]['id'], text)['ts']
                 self.pin_a_message(channels.loc[i]['id'], ts)
+
+    def remove_single_user(self, team_id, user_id):
+        # admin.users:write
+        url = "https://slack.com/api/admin.users.remove?team_id={0}&user_id={1}".format(team_id, user_id)
+        return requests.get(url, headers=self.headers).json()
