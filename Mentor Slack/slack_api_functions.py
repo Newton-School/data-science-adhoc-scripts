@@ -12,9 +12,9 @@ from slack_sdk.errors import SlackApiError
 
 class SlackAPIFunctions:
     def __init__(self):
-        self.courses = {"sklkedn8nxy9": "Array", "j294lterlm0f": "Boolean", "yfk0ux5tgdnz": "Char", "h5bcxjg5iyit": "Pointer" , "n16nhsj3qwl9": "Token"}
-        self.mentor_channel_identifier = "-mentor-sub-group-"
-        self.permanent_members_id = ["U03EHQSN9UM", "U03DYHU8685", "U03ET95U0V9", "U03AHU8JTFZ" , "U03A4ALDY74" , "U03A42G14P8" , "U03ELEXEU4W" , "U038H9F6UMV" , "U03DS3Y8UKX"]
+        self.courses = {"sm0i9m8whabj": "Alexa", "3f1a8lfzgj3n": "Cortana", "pmado1ig3s8e": "Nia", "7aremzdapmyx": "Siri"}
+        self.mentor_channel_identifier = "-sub-batch-"
+        self.permanent_members_id = ["U02U5NV0YSK", "U035QHFJK9C", "U033XP5CS6A"]
 
         self.google_authentication_path = "mentor-sheet-2629f5c5388c.json"
         self.google_sheet_name = "Mentor Slack Evaluation: January, 2022"
@@ -78,14 +78,15 @@ class SlackAPIFunctions:
                     mentor = sub_batch['course_mentor_mappings'][0]['mentor']['user']['username']
                     name = sub_batch['course_mentor_mappings'][0]['mentor']['user']['first_name'] + " " + \
                            sub_batch['course_mentor_mappings'][0]['mentor']['user']['last_name']
+                    for user in sub_batch['course_user_mappings']:
+                        mentee = user['user']['username']
+                        mappings = mappings.append(
+                            {"mentor": mentor, "mentee": mentee, "course": self.courses[course], "Name": name},
+                            ignore_index=True)
                 except:
                     mentor = ""
-                    print("No men")
-                for user in sub_batch['course_user_mappings']:
-                    mentee = user['user']['username']
-                    mappings = mappings.append(
-                        {"mentor": mentor, "mentee": mentee, "course": self.courses[course], "Name": name},
-                        ignore_index=True)
+                    print(sub_batch)
+                
         mappings.to_csv('mentor_mentee_mappings.csv', index=False)
         return mappings
 
