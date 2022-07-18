@@ -1,2 +1,3 @@
 *.csv
-*.env
+.env
+*mentor-sheet-2629f5c5388c.json

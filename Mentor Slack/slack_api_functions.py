@@ -12,16 +12,16 @@ from slack_sdk.errors import SlackApiError
 
 class SlackAPIFunctions:
     def __init__(self):
-        self.courses = {"sm0i9m8whabj": "Alexa", "3f1a8lfzgj3n": "Cortana", "pmado1ig3s8e": "Nia", "7aremzdapmyx": "Siri"}
+        self.courses = {"eniffp14fuub": "Alma", "mrhtidkfzff8": "Bluegene", "geyq6tbx4jui": "Cray", "ezftez33q87w": "Fukagu", "0yzkztxuv7xn": "Selene"}
         self.mentor_channel_identifier = "-sub-batch-"
-        self.permanent_members_id = ["U02U5NV0YSK", "U035QHFJK9C", "U033XP5CS6A"]
+        self.permanent_members_id = ["U03NNQUS6TS", "U03M872J1DZ"]
 
         self.google_authentication_path = "mentor-sheet-2629f5c5388c.json"
         self.google_sheet_name = "Mentor Slack Evaluation: January, 2022"
         self.google_subsheet_name = "Sheet1"
 
         load_dotenv()
-        self.django_token = "BLoBgCTT197RvdNq0CxV8edM2fFSun"
+        self.django_token = "LNR6I9NkztLjbnSJu23pnZJKo8vMsp"
         self.headers = {"Authorization": "Bearer {0}".format(os.getenv("USER_ACCESS_TOKEN"))}
         ACCESS_TOKEN = os.getenv("USER_ACCESS_TOKEN")
         self.client = WebClient(token=ACCESS_TOKEN)
